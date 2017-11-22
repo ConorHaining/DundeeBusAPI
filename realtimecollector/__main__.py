@@ -4,6 +4,15 @@ import schedule
 import scraper
 import config
 
+def updateDatabase(departures, ATCOCode):
+
+	cursor = db.cursor()
+
+	for departure in departures
+
+		cursor.execute("INSERT INTO `departures` (`route`, `destination`, `departure`, `stop`) VALUES ('"+departures['route']+"', '"+departures['destination']+"','"+departures['departure']+"', '"+ATCOCode+"')")
+
+	pass
 
 def main():
 
@@ -18,22 +27,24 @@ def main():
 
 	# Query for all Dundee Bus stops
 
-	cursor = db.cursor()
+	scraper.scrape("6400L0005", updateDatabase);
 
-	cursor.execute('SELECT * FROM `bus_stops`')
+	# cursor = db.cursor()
 
-	for stop in cursor.fetchall():
+	# cursor.execute('SELECT * FROM `bus_stops`')
 
-		ATCOCode = stop[1]
+	# for stop in cursor.fetchall():
 
-		# Scrape every bus stop each minute
-		# Tag the job with the ATCOCode so that it can be easily terminated.
-		schedule.every(1).minutes.do(scraper.scrape, ATCOCode).tag(ATCOCode)
+	# 	ATCOCode = stop[1]
+
+	# 	# Scrape every bus stop each minute
+	# 	# Tag the job with the ATCOCode so that it can be easily terminated.
+	# 	schedule.every(1).minutes.do(scraper.scrape, ATCOCode, printD).tag(ATCOCode)
 
 
-	while 1:
-		schedule.run_pending()
-		pass
+	# while 1:
+	# 	schedule.run_pending()
+	# 	pass
 
 	pass
 
