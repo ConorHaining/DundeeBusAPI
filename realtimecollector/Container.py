@@ -21,7 +21,7 @@ class Container(object):
 		if name in self.container:
 			return self.container[name]
 		else:
-			raise LookupException('Key not found in container.')
+			raise KeyError('Key not found in container.')
 			pass
 
 		pass
