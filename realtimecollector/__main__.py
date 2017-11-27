@@ -1,50 +1,43 @@
-import MySQLdb
 import schedule
-
+import mysql.connector.pooling
 import scraper
 import config
 
-def updateDatabase(departures, ATCOCode):
-
-	cursor = db.cursor()
-
-	for departure in departures
-
-		cursor.execute("INSERT INTO `departures` (`route`, `destination`, `departure`, `stop`) VALUES ('"+departures['route']+"', '"+departures['destination']+"','"+departures['departure']+"', '"+ATCOCode+"')")
-
-	pass
+import Container
 
 def main():
 
-	# Establish Database Connection
+	# Create the container
+	container = Container.Container()
 
-	db = MySQLdb.connect(
-			host=config.DATABASE_CONFIG['host'],
-			user=config.DATABASE_CONFIG['user'],
-			passwd=config.DATABASE_CONFIG['passwd'],
-			db=config.DATABASE_CONFIG['database']
-		)
+	# Establish Database Connection & add it to the container
+	cnxpool = mysql.connector.pooling.MySQLConnectionPool(pool_name = "bus",
+                                                      	  pool_size = 32,
+                                                      	  **config.DATABASE_CONFIG)
+	container.add('pool', cnxpool)
+
+	# scrape = scraper.Scraper(container, "6400PT1018")
+	# scrape.threader()
+	cnx = container.get('pool').get_connection()
+	cursor = cnx.cursor()
 
 	# Query for all Dundee Bus stops
 
-	scraper.scrape("6400L0005", updateDatabase);
+	cursor.execute('SELECT ATCOCode FROM `bus_stops`')
 
-	# cursor = db.cursor()
+	for ATCOCode in cursor:
 
-	# cursor.execute('SELECT * FROM `bus_stops`')
+		scrape = scraper.Scraper(container, ATCOCode[0])
 
-	# for stop in cursor.fetchall():
+		# Scrape every bus stop each minute
+		# Tag the job with the ATCOCode so that it can be easily terminated.
+		schedule.every(1).minutes.do(scrape.threader).tag(ATCOCode[0])
 
-	# 	ATCOCode = stop[1]
+	cnx.close()
 
-	# 	# Scrape every bus stop each minute
-	# 	# Tag the job with the ATCOCode so that it can be easily terminated.
-	# 	schedule.every(1).minutes.do(scraper.scrape, ATCOCode, printD).tag(ATCOCode)
-
-
-	# while 1:
-	# 	schedule.run_pending()
-	# 	pass
+	while 1:
+		schedule.run_pending()
+		pass
 
 	pass
 
